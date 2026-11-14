@@ -153,10 +153,18 @@ function markCurrent(section) {
 
 function markVisibleSection() {
   const headerEdge = navToggle.closest("header").getBoundingClientRect().bottom + 45;
-  const current = navSections.findLast(section => section.getBoundingClientRect().top <= headerEdge);
+  const scroller = document.scrollingElement;
+  const atBottom = scroller.scrollTop > 0 &&
+    scroller.scrollHeight - scroller.clientHeight - scroller.scrollTop <= 2;
+
+  // A short final section can reach the viewport without crossing the header.
+  const current = atBottom
+    ? navSections.at(-1)
+    : navSections.findLast(section => section.getBoundingClientRect().top <= headerEdge);
   markCurrent(current);
 }
 window.addEventListener("scroll", markVisibleSection, {passive: true});
 window.addEventListener("resize", markVisibleSection);
+window.addEventListener("hashchange", markVisibleSection);
 markVisibleSection();
 
