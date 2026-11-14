@@ -1,27 +1,12 @@
-# Build artifacts
-*.exe
+# Local build and simulator state
+/build/
+/session/
 *.obj
-*.o
+*.exe
 *.pdb
 *.ilk
-*.idb
-*.pch
-*.sbr
-*.sdf
-*.VC.db
 .vs/
-x64/
-Debug/
-Release/
-
-# OS / editor
+__pycache__/
 Thumbs.db
 Desktop.ini
 .DS_Store
-*.user
-*.suo
-
-# Local run redirects
-run_out.txt
-run_err.txt
-

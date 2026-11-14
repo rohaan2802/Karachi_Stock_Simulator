@@ -1,633 +1,285 @@
-# Karachi Stock Market Trading Simulator (PF)
+<div align="center">
 
-**Author:** Mohammad Rohaan  
-**Roll No.:** 22I-2327  
-**Section:** A  
-**Course:** Programming Fundamentals — Final Project (BS Cybersecurity)
-**Language:** C++ (MSVC / Windows console)  
-**Main source:** [`22i-2327_A_Project.cpp`](22i-2327_A_Project.cpp)  
-**GitHub:** [rohaan2802/KarachiStockMarket_PF](https://github.com/rohaan2802/KarachiStockMarket_PF)
+# Karachi Stock Simulator
 
-Console-based **Karachi Stock Exchange–style** trading simulator. The program shows a live market board and a personal portfolio, refreshes prices with a hard **±15%** session cap, lets you buy/sell stocks and move cash, colors gains green / losses red, grows holdings with a **dynamic array**, and saves both market and portfolio files on exit.
+**A C++ Windows console simulator for trading a 12-company mock market in Pakistani rupees.**
 
-This README starts with run steps, features, and keymap, then a **30-image screenshot gallery**, followed by full technical detail (constraints, rubric, algorithms, functions, and more).
+[![Language](https://img.shields.io/badge/Language-C%2B%2B-12675A?style=for-the-badge&logo=cplusplus&logoColor=white)](#project-breakdown)
+[![Platform](https://img.shields.io/badge/Platform-Windows-2C5863?style=for-the-badge&logo=windowsterminal&logoColor=white)](#setup)
+[![Data](https://img.shields.io/badge/Data-12%20companies-446034?style=for-the-badge)](data/companies.csv)
+[![Gallery](https://img.shields.io/badge/Gallery-24%20figures-365E83?style=for-the-badge)](#gallery)
+[![Build](https://img.shields.io/badge/Build-CMake-243D68?style=for-the-badge&logo=cmake&logoColor=white)](CMakeLists.txt)
+[![Demo](https://img.shields.io/badge/Demo-Walkthrough-74501D?style=for-the-badge&logo=github&logoColor=white)](#recruiter-demo)
+[![Export](https://img.shields.io/badge/Export-CSV-175653?style=for-the-badge&logo=microsoftexcel&logoColor=white)](#project-breakdown)
+[![Checks](https://img.shields.io/badge/Checks-Smoke%20test-5B417B?style=for-the-badge&logo=python&logoColor=white)](tests/smoke_test.py)
 
----
+</div>
 
-## How to run
+## Live Links
 
-This app uses Windows console APIs (`system("cls")`, `_getch()`, colored text). Run it in a **standard Windows console** so clear-screen, keys, and colors work correctly.
+| What | Link |
+|---|---|
+| Repository | [https://github.com/rohaan2802/KarachiStockMarket_PF](https://github.com/rohaan2802/KarachiStockMarket_PF) |
+| GitHub Pages | [https://rohaan2802.github.io/Karachi_Stock_Simulator/](https://rohaan2802.github.io/Karachi_Stock_Simulator/) |
+| Original assignment brief | [https://github.com/rohaan2802/KarachiStockMarket_PF/blob/1c8fdd524bdc24df7a0cf8496fdc51977b39e7ea/docs/Project.pdf](https://github.com/rohaan2802/KarachiStockMarket_PF/blob/1c8fdd524bdc24df7a0cf8496fdc51977b39e7ea/docs/Project.pdf) |
 
-On start the app **maximizes** the window, applies a **dark theme** (black background, bright text), and uses a **large Consolas bold font** (~24) like the Shopping Portal UI.
+## Contents
 
-### Fastest way (recommended)
+- [Live Links](#live-links)
+- [Overview](#overview)
+- [What's Inside](#whats-inside)
+- [Recruiter Demo](#recruiter-demo)
+- [Project Breakdown](#project-breakdown)
+- [Folder Structure](#folder-structure)
+- [Setup](#setup)
+- [Results](#results)
+- [Limitations](#limitations)
+- [Gallery](#gallery)
+- [About the Author](#about-the-author)
 
-From the project folder (`KarachiStockMarket_PF`):
+## Overview
 
-```bat
-run.bat
-```
+Karachi Stock Simulator is a Windows console project by Mohammad Rohaan for Programming Fundamentals at FAST-NUCES. It models a local stock market and a personal portfolio using a bundled snapshot of 12 listed companies. The program generates mock prices locally in Pakistani rupees.
 
-This **always cleans the old `.exe`, recompiles** `22i-2327_A_Project.cpp`, then opens the simulator in a **new console window**. Use **Enter / P / A / R / M / E** there.
+## What's Inside
 
-### Build, then run manually
+| Component | Purpose |
+|---|---|
+| [C++ simulator](src/market_simulator.cpp) | Complete application with market, ranking, export and portfolio views |
+| [CMake project](CMakeLists.txt) | Build target and Visual Studio debugger configuration |
+| [Technical walkthrough](docs/technical_walkthrough.md) | Architecture, data contracts and a recruiter demo script |
+| [Company data](data/companies.csv) | Headerless symbol, company name and starting price rows |
+| [Assignment brief](docs/project_brief.pdf) | Original course requirements |
+| [Self-evaluation](docs/self_evaluation.pdf) | Original feature checklist |
+| [Console display notes](docs/console_display_notes.pdf) | Earlier Windows console troubleshooting |
+| [Saved sample](docs/portfolio_sample.txt) | Example portfolio text report |
+| [Smoke test](tests/smoke_test.py) | Runs the built program with isolated inputs and checks its saved files |
 
-```bat
-build.bat
-22i-2327_A_Project.exe
-```
+## Recruiter Demo
 
-Keep `companies.txt` and `portfolio.txt` in the **same folder** as the `.exe`.
+| Step | Action | What to inspect |
+|---|---|---|
+| 1 | Launch with **run.bat** and press **Enter** | Previous price, current price, and the session high and low |
+| 2 | Press **S** | The same companies sorted by percentage return from their opening prices |
+| 3 | Press **X** | A spreadsheet-friendly snapshot in **session/market_snapshot.csv** |
+| 4 | Open **P**, deposit cash with **M**, and buy two **PSO** shares with **A** | Cash decreases and the portfolio shows the open position |
+| 5 | Sell one share with **R**, exit with **E**, and reopen the portfolio | One share and the resulting cash balance persist |
 
-### Optional: Run from an IDE
+The [technical walkthrough](docs/technical_walkthrough.md) connects those screens to their C++ functions and explains the exported columns.
 
-If your IDE has a Run / Debug action for C++:
+## Project Breakdown
 
-1. Open `22i-2327_A_Project.cpp`.
-2. Choose the **`Run C++ file`** launch configuration.
-3. Start Run / Debug so the program opens in an **external** console with working directory = the project folder.
+At startup the app loads a plain CSV, rejects malformed or duplicate entries, and fixes each stock’s opening price for that session. A refresh applies a randomized whole-rupee and fractional change, rounds to cents, clamps to the nearest allowed cent inside the ±15% band, and updates previous, high and low prices. The market board also shows the top percentage movers and the number of shares bought and sold in the session.
 
-Project helpers: `msvc_build.bat`, `msvc_run.bat`, and `.vscode/` launch + tasks (MSVC `vcvars` + external console).
+The session ranking sorts by return from the opening quote. The Live Market footer compares the current tick with the previous tick, so the two views can highlight different companies. Exporting writes a point-in-time CSV with opening, previous, current, high, low and return-from-open columns.
 
-### Troubleshooting
-
-| Symptom | Fix |
-|---------|-----|
-| `cl.exe` not recognized | Install Visual Studio **C++ Build Tools**; scripts auto-find `vcvars64.bat` |
-| Blank / frozen after start | Use `run.bat` or an external console (not a limited integrated panel) |
-| `No companies loaded` | Run from inside `KarachiStockMarket_PF\` so `companies.txt` is found |
-| Keys ignored | Focus the console window where the simulator is running |
-
----
-
-## What the program does (feature overview)
-
-1. **Loads** stock symbols, company names, and prices from `companies.txt`.
-2. **Locks** each stock’s session-start price for the ±15% cap for the whole run.
-3. Draws the **Live Market** board: Stocks | Company | Prev | Curr | High | Low with ↑ / ↓.
-4. On **Enter**, refreshes **all** prices with random integer + fractional deltas, updates high/low, and shows top % advancer / decliner plus total shares traded.
-5. Opens **Portfolio** (key **P**): owner name, holdings table, per-row gain/loss, today’s G/L, previous balance, new balance.
-6. **Buy** (**A**) / **Sell** (**R**) with symbol and balance / share checks; holdings grow dynamically.
-7. **Add money** (**M**) / **Withdraw** (**W**, portfolio only) with validations.
-8. On **Exit** (**E**), writes updated prices to `companies.txt` and a formatted `portfolio.txt` (`iomanip`).
-9. **Colors:** positive gain/loss green, negative red (Win32 `SetConsoleTextAttribute`).
-
----
-
-## Keymap
-
-### Live Market
+The portfolio uses dynamically resized arrays for symbols and share counts. Buying debits cash at the current simulated price. Selling credits cash and removes fully sold positions. Portfolio gain or loss compares current and previous tick values for shares still held. Cash and holdings are saved in a readable text report. The original report format remains readable by the application.
 
 | Key | Action |
-|-----|--------|
-| **Enter** | Refresh **all** market prices |
-| **P** | Open Portfolio |
-| **A** | Buy / add stock to holdings |
-| **R** | Sell / remove stock from holdings |
-| **M** | Add money to cash balance |
-| **E** | Exit and save both files |
-
-### Portfolio
-
-| Key | Action |
-|-----|--------|
-| **Enter** | Refresh all market prices (same engine) |
-| **L** | Back to Live Market |
-| **A** | Buy / add stock |
-| **R** | Sell / remove stock |
-| **M** | Add money |
-| **W** | Withdraw money |
-| **E** | Exit and save both files |
-
-Keys are case-insensitive (`a` / `A` both work).
-
-### Buying shares (cash starts at Rs. 0)
-
-Portfolio cash begins at **zero**, so buy will fail until you deposit money:
-
-1. Press **M** → enter amount (example: `500000`)
-2. Press **A** → enter symbol (example: `PSO`) → enter shares (example: `10`)
-3. Press **P** to open Portfolio and see holdings / gain-loss
-4. Press **Enter** anytime to refresh prices
-
----
-
-## Screenshot gallery (30)
-
-Illustrative console-style captures generated with [`docs/generate_screenshots.py`](docs/generate_screenshots.py) (Pillow). They document every major UI surface and rule. Regenerate with:
-
-```bat
-python docs/generate_screenshots.py
-```
-
----
-
-### SS01 — Live Market board
-
-Full market view: symbol, company name, previous price, current price, session high, session low.
-
-![SS01 Live Market](docs/screenshots/01_live_market.png)
-
----
-
-### SS02 — Enter key price refresh
-
-Pressing **Enter** updates every listed stock in one pass (not a single-row tick).
-
-![SS02 Enter refresh](docs/screenshots/02_enter_refresh.png)
-
----
-
-### SS03 — Up / down arrows on Curr
-
-Current price column shows ↑ when the tick rose and ↓ when it fell versus previous.
-
-![SS03 Price up down](docs/screenshots/03_price_up_down.png)
-
----
-
-### SS04 — Session High and Low columns
-
-High / Low track the extreme Curr values since this session started.
-
-![SS04 High Low](docs/screenshots/04_high_low.png)
-
----
-
-### SS05 — Top percentage Advancer
-
-Footer highlights the stock with the largest positive % change on the last refresh.
-
-![SS05 Top Advancer](docs/screenshots/05_top_advancer.png)
-
----
-
-### SS06 — Top percentage Decliner
-
-Footer highlights the stock with the largest negative % change on the last refresh.
-
-![SS06 Top Decliner](docs/screenshots/06_top_decliner.png)
-
----
-
-### SS07 — Total shares traded
-
-Cumulative buy + sell volume for the session is shown on the market footer.
-
-![SS07 Total Traded](docs/screenshots/07_total_traded.png)
-
----
-
-### SS08 — Empty Portfolio
-
-Portfolio before any holdings: owner line, empty table, cash-based footer.
-
-![SS08 Empty Portfolio](docs/screenshots/08_portfolio_empty.png)
-
----
-
-### SS09 — Add Money (M)
-
-Deposit cash into the investor balance with amount validation.
-
-![SS09 Add Money](docs/screenshots/09_add_money.png)
-
----
-
-### SS10 — Buy / Add stock (A)
-
-Purchase by symbol and share count; cash and holdings update together.
-
-![SS10 Buy Stock](docs/screenshots/10_buy_stock.png)
-
----
-
-### SS11 — Portfolio holdings table
-
-Holdings rows: shares, current, previous, gain/loss, high, low.
-
-![SS11 Portfolio Holdings](docs/screenshots/11_portfolio_holdings.png)
-
----
-
-### SS12 — Gain shown in green
-
-Positive row / total gain/loss uses bright green console color.
-
-![SS12 Gain Green](docs/screenshots/12_gain_green.png)
-
----
-
-### SS13 — Loss shown in red
-
-Negative gain/loss uses bright red console color.
-
-![SS13 Loss Red](docs/screenshots/13_loss_red.png)
-
----
-
-### SS14 — Sell / Remove stock (R)
-
-Sell reduces shares or removes the holding; cash is credited at current price.
-
-![SS14 Sell Stock](docs/screenshots/14_sell_stock.png)
-
----
-
-### SS15 — Withdraw money (W)
-
-Withdraw from cash on the Portfolio screen; overdraft rejected.
-
-![SS15 Withdraw](docs/screenshots/15_withdraw.png)
-
----
-
-### SS16 — Invalid symbol validation
-
-Unknown tickers are rejected with a clear message (no crash).
-
-![SS16 Invalid Symbol](docs/screenshots/16_invalid_symbol.png)
-
----
-
-### SS17 — Insufficient balance validation
-
-Buy that exceeds cash is blocked.
-
-![SS17 Insufficient Balance](docs/screenshots/17_insufficient_balance.png)
-
----
-
-### SS18 — ±15% session price cap
-
-Prices cannot leave `[0.85 × sessionStart, 1.15 × sessionStart]` for the run.
-
-![SS18 Fifteen Percent Cap](docs/screenshots/18_fifteen_percent_cap.png)
-
----
-
-### SS19 — Loading companies.txt
-
-Startup loads all CSV rows into parallel arrays and locks session-start prices.
-
-![SS19 Companies Load](docs/screenshots/19_companies_load.png)
-
----
-
-### SS20 — Save on exit
-
-**E** writes updated `companies.txt` and formatted `portfolio.txt`.
-
-![SS20 Save On Exit](docs/screenshots/20_save_on_exit.png)
-
----
-
-### SS21 — Live Market keymap banner
-
-On-screen help for Enter / P / A / R / M / E.
-
-![SS21 Market Key Menu](docs/screenshots/21_key_menu_market.png)
-
----
-
-### SS22 — Portfolio keymap banner
-
-On-screen help for Enter / L / A / R / M / W / E.
-
-![SS22 Portfolio Key Menu](docs/screenshots/22_key_menu_portfolio.png)
-
----
-
-### SS23 — Investor name entry
-
-Portfolio asks for owner name once, then keeps it for the session and file save.
-
-![SS23 Name Entry](docs/screenshots/23_name_entry.png)
-
----
-
-### SS24 — Formatted portfolio.txt (`iomanip`)
-
-Saved file from Exit (**E**) — fixed-width columns so every heading lines up with its values (`setw` / `setprecision`).
-
-![SS24 Formatted Portfolio File](docs/screenshots/24_formatted_portfolio_file.png)
-
----
-
-### SS25 — Multi-stock market table
-
-Twelve-symbol board fills the Live Market view.
-
-![SS25 Multi Stock Table](docs/screenshots/25_multi_stock_table.png)
-
----
-
-### SS26 — Session-start prices locked
-
-Cap anchors are fixed at load time even while Curr keeps moving.
-
-![SS26 Session Start Prices](docs/screenshots/26_session_start_prices.png)
-
----
-
-### SS27 — Market footer statistics
-
-Traded volume + top advancer / decliner summarized under the board.
-
-![SS27 Footer Stats](docs/screenshots/27_footer_stats.png)
-
----
-
-### SS28 — Color legend (gain / loss)
-
-Green = profit tick / positive G/L; red = loss tick / negative G/L.
-
-![SS28 Color Legend](docs/screenshots/28_color_legend.png)
-
----
-
-### SS29 — Self-evaluation checklist coverage
-
-Visual map of rubric items completed for the self-evaluation sheet.
-
-![SS29 Self Eval Checklist](docs/screenshots/29_self_eval_checklist.png)
-
----
-
-### SS30 — Complete feature map
-
-End-to-end feature summary: market, portfolio, files, bonuses, constraints.
-
-![SS30 Complete Feature Map](docs/screenshots/30_complete_feature_map.png)
-
----
-
-## Hard constraints (ZERO marks if violated)
-
-| Rule | How this project complies |
-|------|---------------------------|
-| **No global variables** | All market arrays, cash, holdings pointers, counters live in `main` and are passed by parameter. Capacities use `#define` only. |
-| **No `goto`** | Control flow uses loops + `if` / `else` only. |
-| **No OOP / classes** | No classes or member functions — **parallel arrays + free functions** only. |
-| **Name / Roll / Section** | Present at the top of `22i-2327_A_Project.cpp`. |
-
----
-
-## Assignment requirements (from `docs/Project.pdf`)
-
-| # | Requirement | Implementation |
-|---|-------------|----------------|
-| 1 | Load / save market data | `loadCompanies` / `saveCompanies` on `companies.txt` (CSV) |
-| 2 | Live Market screen | `drawLiveMarket` — full board + footer stats |
-| 3 | Enter refreshes prices | `refreshAllPrices` — random Δ, ±15% clamp, high/low, traded, top A/D |
-| 4 | Portfolio screen | `drawPortfolio` — name, table, footer balances |
-| 5 | Add / remove stock | `addStock` / `removeStock` |
-| 6 | Add / withdraw money | `addMoney` / `withdrawMoney` |
-| 7 | Save on exit | Both files rewritten when user presses **E** |
-
-Official brief: [`docs/Project.pdf`](docs/Project.pdf)
-
----
-
-## Rubric + bonuses (self-evaluation mapping)
-
-| Task | Marks | Status | Where in code |
-|------|------:|--------|---------------|
-| Load stock market data | 10 | Done | `loadCompanies` |
-| Show Stock Market Screen | 10 | Done | `drawLiveMarket` |
-| Random ±, high/low, traded, top A/D | 20 | Done | `refreshAllPrices`, `findTopAdvancerDecliner` |
-| Load / store portfolio.txt | 10 | Done | `savePortfolio` (written each exit) |
-| Show portfolio screen | 10 | Done | `drawPortfolio` |
-| Portfolio G/L, high/low, balances | 20 | Done | `computePortfolioTotals` + draw |
-| Add stock (+ colors bonus) | 10 (+10) | Done | `addStock` + `printGainLossColored` |
-| Remove stock | 10 | Done | `removeStock` |
-| Add / withdraw money | 10 | Done | `addMoney` / `withdrawMoney` |
-| Save market on close (bonus) | 10 | Done | `saveCompanies` on exit |
-| Dynamic array for holdings (bonus) | 10 | Done | `expandHoldings` / `freeHoldings` (`new[]` / `delete[]`) |
-| `portfolio.txt` via `iomanip` (bonus) | 10 | Done | `setw` / `setprecision` / `fixed` in `savePortfolio` |
-
-Self-evaluation PDF: [`docs/Project-self-evaluation-sheet.pdf`](docs/Project-self-evaluation-sheet.pdf)  
-Checklist visual: see **SS29** below.
-
----
-
-## Data files
-
-### `companies.txt` (input + output)
-
-CSV lines: `SYMBOL,Company Name,price`
+|---|---|
+| Enter | Refresh every stock |
+| P / L | Open Portfolio / return to Live Market |
+| M / W | Deposit cash / withdraw cash (Portfolio only) |
+| A / R | Buy / sell by stock symbol |
+| S / X | Rank stocks by return from open / export the current market snapshot |
+| E | Exit and save |
+
+## Folder Structure
 
 ```text
-PSO,Pakistan State Oil,150.70
-LUCK,Lucky Cement,488.20
-HBL,Habib Bank Limited,70.00
-OGDC,Oil and Gas Development Company,76.40
-PPL,Pakistan Petroleum Limited,112.35
-POL,Pakistan Oilfields Limited,415.50
-MARI,Mari Petroleum Company Limited,1520.00
-ENGRO,Engro Corporation Limited,305.25
-TRG,TRG Pakistan Limited,78.90
-MEBL,Meezan Bank Limited,113.00
-SYS,Systems Limited,425.60
-UBL,United Bank Limited,168.40
+Karachi_Stock_Simulator/
+├── src/           Windows C++ simulator
+├── data/          Tracked seed prices
+├── docs/          Assignment, sample, display notes and archive
+├── tests/         Executable smoke test
+├── assets/        Site CSS, JavaScript, captures and previews
+├── CMakeLists.txt C++17 build and IDE project
+├── index.html     GitHub Pages entry point
+├── build.bat      Compile using MSVC or MinGW-w64
+└── run.bat        Build and start a local session
 ```
 
-Twelve KSE-like listings ship with the repo. On exit, **current** prices overwrite this file and become the next run’s session-start prices.
+[Archive notes](docs/archive/README.md) identify the earlier versions and the original files.
 
-### `portfolio.txt` (written on exit)
+## Setup
 
-Fixed-width table written with `<iomanip>` (`setw`, `left`/`right`, `fixed`, `setprecision(2)`):
+On Windows, install the MSVC C++ Build Tools or place MinGW-w64 C++ on PATH. From the project folder, run:
 
-- Header and every data row use the **same column widths** (symbol, company, shares, close, previous, gain/loss, high, low)
-- Footer lines use a fixed label column + aligned money values (no tabs)
-- Separator lines match the full table width
-
-Sample: [`docs/portfolio-sample.txt`](docs/portfolio-sample.txt).
-
----
-
-## Algorithms (detail)
-
-### Price refresh (±15% hard cap)
-
-1. When `companies.txt` loads, copy each price into `sessionStart[i]` (fixed for this process).
-2. On **Enter**:
-   - `prevPrice[i] = currPrice[i]`
-   - Build a candidate: `curr + intDelta + fracDelta`  
-     (`intDelta` ∈ [-3, +3], `fracDelta` ∈ [-0.99, +0.99])
-   - Clamp candidate into `[sessionStart * 0.85, sessionStart * 1.15]`
-   - Update session `highPrice` / `lowPrice`
-   - `pctChange[i] = ((curr - prev) / prev) * 100`
-3. Top advancer / decliner = indices of max / min `pctChange`.
-4. On exit, `currPrice` values are written to `companies.txt`.
-
-### Portfolio gain / loss
-
-```text
-rowGainLoss = (currPrice - prevPrice) * shares
-todayGL     = sum(rowGainLoss over all holdings)
-newBalance  = cashBalance + todayGL   (display footer)
+```powershell
+.\run.bat
 ```
 
-- **Buy:** cash decreases by `curr * shares`; holding created or increased; `totalSharesTraded` increases.
-- **Sell:** cash increases by `curr * shares`; holding decreased or removed; `totalSharesTraded` increases.
+Open **P** to create a portfolio and enter an owner name. Deposit **10,000** with **M**, buy **2 PSO** shares with **A**, and refresh the board with **Enter**. Try selling one share with **R** and exit with **E**. On the next run choose **P → 1** to resume. For a fresh start, close the simulator and remove the local **session/** folder. The launcher copies the bundled seed to that folder and the program writes current prices and portfolio state there.
 
-### Colors (Win32)
+For IDE review, open the repository folder as a CMake project in Visual Studio. The CMake target builds the same C++ source and puts a seed copy in the build directory’s session folder. For a command-line build:
 
-| Condition | Color |
-|-----------|--------|
-| Gain &gt; 0 | Bright green |
-| Loss &lt; 0 | Bright red |
-| Flat ≈ 0 | Default white |
-
-Screen clear uses `system("cls")`. Single-key input uses `_getch()` from `<conio.h>`.
-
-### Dynamic holdings (bonus)
-
-`expandHoldings` doubles capacity with `new[]` / `delete[]`. `freeHoldings` releases memory before exit. No STL containers for the holdings list — raw parallel arrays only.
-
----
-
-## Parallel arrays & state (no globals)
-
-Declared inside `main` and passed into helpers:
-
-| Array / variable | Role |
-|------------------|------|
-| `symbols[][SYM_LEN]` | Market tickers |
-| `names[][NAME_LEN]` | Company display names |
-| `sessionStart[]` | Cap anchors (±15%) |
-| `prevPrice[]` / `currPrice[]` | Previous / current tick |
-| `highPrice[]` / `lowPrice[]` | Session extremes |
-| `pctChange[]` | Last refresh % move |
-| `balance` | Cash |
-| `holdSymbols` / `holdShares` | Dynamic holdings |
-| `holdCount` / `holdCapacity` | Holdings size / capacity |
-| `totalSharesTraded` | Cumulative buy+sell volume |
-| `ownerName` | Portfolio owner |
-| `hConsole` | Win32 console handle for colors |
-
-`#define` constants only: `MAX_COMPANIES`, `SYM_LEN`, `NAME_LEN`, `OWNER_LEN`.
-
----
-
-## Function inventory
-
-| Function | Purpose |
-|----------|---------|
-| `clearScreen` | `cls` |
-| `setColor` / `resetColor` | Console text attributes |
-| `printGainLossColored` | Print signed G/L in green/red |
-| `enableUtf8Console` | UTF-8 code page for ↑/↓ |
-| `loadCompanies` | Parse `companies.txt` into parallel arrays |
-| `saveCompanies` | Write current prices back |
-| `findSymbolIndex` | Lookup ticker in market |
-| `refreshAllPrices` | Random move + ±15% clamp + high/low/% |
-| `findTopAdvancerDecliner` | Best / worst % on last refresh |
-| `expandHoldings` / `freeHoldings` | Dynamic array grow / free |
-| `findHoldingIndex` | Lookup ticker in holdings |
-| `drawLiveMarket` | Full market UI + footer |
-| `computePortfolioTotals` | Today’s G/L aggregate |
-| `drawPortfolio` | Full portfolio UI + footer |
-| `addMoney` / `withdrawMoney` | Cash in / out with checks |
-| `addStock` / `removeStock` | Buy / sell with validations |
-| `savePortfolio` | Formatted `portfolio.txt` |
-| `ensureOwnerName` | Prompt once for investor name |
-| `main` | Owns all state; event loop |
-
----
-
-## Project layout
-
-```text
-KarachiStockMarket_PF/
-├── 22i-2327_A_Project.cpp   # only source file (submission)
-├── companies.txt            # market CSV (read + overwritten on exit)
-├── portfolio.txt            # last saved portfolio (iomanip)
-├── build.bat / run.bat      # build + launch helpers
-├── msvc_build.bat / msvc_run.bat
-├── README.md
-├── .vscode/                 # launch / tasks / IntelliSense
-└── docs/
-    ├── Project.pdf
-    ├── Project-self-evaluation-sheet.pdf
-    ├── portfolio-sample.txt
-    ├── starter.cpp          # original brief starter sketch
-    ├── generate_screenshots.py
-    └── screenshots/         # 01–30 PNG gallery (embedded below)
+```powershell
+cmake -S . -B build/ide
+cmake --build build/ide --config Debug
 ```
 
----
+To run the executable-based verification suite with Python 3:
 
-## Build notes
-
-### MSVC (Build Tools / Visual Studio) — primary
-
-```bat
-build.bat
+```powershell
+.\build.bat
+python tests/smoke_test.py
 ```
 
-Equivalent after `vcvars64.bat`:
+## Results
 
-```bat
-cl /EHsc /W3 /Fe:22i-2327_A_Project.exe 22i-2327_A_Project.cpp /link user32.lib
-```
+The [saved portfolio sample](docs/portfolio_sample.txt) illustrates the block report, including owner, cash, per-symbol prices, share count, and totals. A normal local run writes updated quotes to **session/companies.txt** and creates **session/portfolio.txt** when a portfolio is set up. Closing an untouched session preserves any existing portfolio file. Local checks passed for the C++ build, 500 refreshes with prices inside their session bounds, deposits, withdrawals, buys, sells, rejection paths persistence, ranking order, and CSV calculation accuracy. The gallery was also checked at mobile, tablet and desktop widths in light and dark themes. Figures label their sources so readers can distinguish saved examples, source inspection, assignment excerpts and captured output.
 
-**Verified on this machine:** MSVC `cl` succeeds (`EXITCODE=0`).
+## Limitations
 
-### MinGW (optional)
+Prices come from a classroom snapshot and simulated random ticks. The console targets Windows and uses Win32 display APIs. The app supports one local portfolio and up to 50 company rows. The saved files are independent and the simulator expects one running instance per session folder. There are no fees, order book, real-time quotes, or cost-basis returns.
 
-```bat
-g++ -std=c++17 -O2 -o 22i-2327_A_Project.exe 22i-2327_A_Project.cpp
-```
+## Gallery
 
-Requires MinGW with Windows headers (`windows.h`, `conio.h`).
+### Live Market board
 
----
+<p align="left"><a href="assets/screenshots/08-live-market-board-sage.png"><img src="assets/thumbs/08-live-market-board-sage.webp" width="960" alt="Live Market board"></a></p>
 
-## Suggested manual walkthrough (test plan)
+Output from running the Windows simulator with the bundled quotes.
 
-1. Start via `.\run.bat` — confirm 12 companies load and Live Market appears.
-2. Press **Enter** several times — Prev/Curr change; ↑/↓ update; high/low move; top advancer/decliner update.
-3. Press **M**, deposit cash (e.g. `500000`).
-4. Press **A**, buy `PSO` shares — cash drops; traded counter rises.
-5. Press **P** — enter name — holdings table shows G/L colors after another Enter refresh.
-6. Press **A** again to buy a second symbol — dynamic holdings expand.
-7. Press **R** to sell partial/full shares — validations for bad symbol / too many shares.
-8. Press **W** to withdraw — reject amounts above cash.
-9. Try invalid symbol on buy — error message, no crash.
-10. Press **E** — confirm `companies.txt` prices changed and `portfolio.txt` is formatted.
+### Session ranking
 
----
+<p align="left"><a href="assets/screenshots/07-session-ranking-sage.png"><img src="assets/thumbs/07-session-ranking-sage.webp" width="960" alt="Session ranking"></a></p>
 
-## Design note — why no globals
+Companies sorted by percentage return from their opening quote.
 
-File-scope mutable state is forbidden by the brief. Capacities are compile-time `#define`s. Runtime state (arrays, cash, pointers, flags) is created in `main` and passed explicitly. That keeps grading-safe PF style while still supporting a dynamic holdings list.
+### Exported market snapshot
 
----
+<p align="left"><a href="assets/screenshots/19-exported-market-snapshot-sage.png"><img src="assets/thumbs/19-exported-market-snapshot-sage.webp" width="960" alt="Exported market snapshot"></a></p>
 
-## References in `docs/`
+Selected columns from the CSV written during a smoke-test run.
 
-| File | Description |
-|------|-------------|
-| [`Project.pdf`](docs/Project.pdf) | Official PF project brief |
-| [`Project-self-evaluation-sheet.pdf`](docs/Project-self-evaluation-sheet.pdf) | Marks / bonus checklist |
-| [`starter.cpp`](docs/starter.cpp) | Early sketch / starter style |
-| [`portfolio-sample.txt`](docs/portfolio-sample.txt) | Example portfolio layout |
-| [`generate_screenshots.py`](docs/generate_screenshots.py) | Regenerates the 30 PNGs |
-| [`screenshots/`](docs/screenshots/) | Full gallery folder |
+### Company snapshot
 
----
+<p align="left"><a href="assets/screenshots/01-company-snapshot-sage.png"><img src="assets/thumbs/01-company-snapshot-sage.webp" width="960" alt="Company snapshot"></a></p>
 
-## Submission checklist
+Twelve bundled symbol, company and starting price records.
 
-- [x] Name / Roll / Section header in source
-- [x] No globals / no `goto` / no classes
-- [x] Live Market + Portfolio UIs
-- [x] Enter refresh with ±15% cap, high/low, traded, top A/D
-- [x] Buy / sell / money with validations
-- [x] Colors for gain / loss
-- [x] Dynamic holdings array
-- [x] Save `companies.txt` + formatted `portfolio.txt` on exit
-- [x] `build.bat` + `run.bat` / launch helpers
-- [x] README with full detail + all 30 screenshots headed
+### Market input validation
+
+<p align="left"><a href="assets/screenshots/02-market-input-validation-sage.png"><img src="assets/thumbs/02-market-input-validation-sage.webp" width="960" alt="Market input validation"></a></p>
+
+The CSV parser validates names, prices and duplicate symbols.
+
+### Stock symbol lookup
+
+<p align="left"><a href="assets/screenshots/03-stock-symbol-lookup-sage.png"><img src="assets/thumbs/03-stock-symbol-lookup-sage.webp" width="960" alt="Stock symbol lookup"></a></p>
+
+Linear search matches symbols regardless of letter case.
+
+### Random tick generation
+
+<p align="left"><a href="assets/screenshots/04-random-tick-generation-sage.png"><img src="assets/thumbs/04-random-tick-generation-sage.webp" width="960" alt="Random tick generation"></a></p>
+
+The refresh combines a whole-number delta and a fractional delta.
+
+### The session price band
+
+<p align="left"><a href="assets/screenshots/05-the-session-price-band-sage.png"><img src="assets/thumbs/05-the-session-price-band-sage.webp" width="960" alt="The session price band"></a></p>
+
+Cent rounding stays inside the opening price’s ±15% limits.
+
+### Highs, lows and tick change
+
+<p align="left"><a href="assets/screenshots/06-highs-lows-and-tick-change-sage.png"><img src="assets/thumbs/06-highs-lows-and-tick-change-sage.webp" width="960" alt="Highs, lows and tick change"></a></p>
+
+Each price refresh updates session extremes and the percentage move.
+
+### Holdings allocation
+
+<p align="left"><a href="assets/screenshots/09-holdings-allocation-sage.png"><img src="assets/thumbs/09-holdings-allocation-sage.webp" width="960" alt="Holdings allocation"></a></p>
+
+The holdings arrays grow as new symbols enter the portfolio.
+
+### Portfolio valuation
+
+<p align="left"><a href="assets/screenshots/10-portfolio-valuation-sage.png"><img src="assets/thumbs/10-portfolio-valuation-sage.webp" width="960" alt="Portfolio valuation"></a></p>
+
+The totals function marks held shares at previous and current prices.
+
+### Portfolio setup
+
+<p align="left"><a href="assets/screenshots/11-portfolio-setup-sage.png"><img src="assets/thumbs/11-portfolio-setup-sage.webp" width="960" alt="Portfolio setup"></a></p>
+
+The console creates a named portfolio when no saved file exists.
+
+### Continuing a portfolio
+
+<p align="left"><a href="assets/screenshots/12-continuing-a-portfolio-sage.png"><img src="assets/thumbs/12-continuing-a-portfolio-sage.webp" width="960" alt="Continuing a portfolio"></a></p>
+
+The startup menu offers a saved portfolio, a fresh portfolio, or cancel.
+
+### Trade and cash confirmations
+
+<p align="left"><a href="assets/screenshots/13-trade-and-cash-confirmations-sage.png"><img src="assets/thumbs/13-trade-and-cash-confirmations-sage.webp" width="960" alt="Trade and cash confirmations"></a></p>
+
+The simulator confirms the deposit, buy, sell and withdrawal.
+
+### Withdrawal flow
+
+<p align="left"><a href="assets/screenshots/14-withdrawal-flow-sage.png"><img src="assets/thumbs/14-withdrawal-flow-sage.webp" width="960" alt="Withdrawal flow"></a></p>
+
+The prompt accepts a rupee amount or zero to cancel the operation.
+
+### Rejected buy orders
+
+<p align="left"><a href="assets/screenshots/15-rejected-buy-orders-sage.png"><img src="assets/thumbs/15-rejected-buy-orders-sage.webp" width="960" alt="Rejected buy orders"></a></p>
+
+The simulator rejects an unknown symbol and an order exceeding available cash.
+
+### Sell order entry
+
+<p align="left"><a href="assets/screenshots/16-sell-order-entry-sage.png"><img src="assets/thumbs/16-sell-order-entry-sage.webp" width="960" alt="Sell order entry"></a></p>
+
+A sell is handled against the same quote arrays and the investor’s holdings.
+
+### Saved PSO position
+
+<p align="left"><a href="assets/screenshots/17-saved-pso-position-sage.png"><img src="assets/thumbs/17-saved-pso-position-sage.webp" width="960" alt="Saved PSO position"></a></p>
+
+The generated portfolio report records the remaining PSO share and cash.
+
+### Saved portfolio totals
+
+<p align="left"><a href="assets/screenshots/18-saved-portfolio-totals-sage.png"><img src="assets/thumbs/18-saved-portfolio-totals-sage.webp" width="960" alt="Saved portfolio totals"></a></p>
+
+Report footer produced after a deposit, buy, sell and withdrawal.
+
+### Session exit
+
+<p align="left"><a href="assets/screenshots/20-session-exit-sage.png"><img src="assets/thumbs/20-session-exit-sage.webp" width="960" alt="Session exit"></a></p>
+
+Exit writes the market and writes the portfolio when it was opened or changed.
+
+### Ranking sort logic
+
+<p align="left"><a href="assets/screenshots/21-ranking-sort-logic-sage.png"><img src="assets/thumbs/21-ranking-sort-logic-sage.webp" width="960" alt="Ranking sort logic"></a></p>
+
+Stable sorting orders symbols by return from their opening quote.
+
+### CSV export logic
+
+<p align="left"><a href="assets/screenshots/22-csv-export-logic-sage.png"><img src="assets/thumbs/22-csv-export-logic-sage.webp" width="960" alt="CSV export logic"></a></p>
+
+The export writes quotes and percentage returns, then replaces the previous snapshot.
+
+### Bounds verification
+
+<p align="left"><a href="assets/screenshots/23-bounds-verification-sage.png"><img src="assets/thumbs/23-bounds-verification-sage.webp" width="960" alt="Bounds verification"></a></p>
+
+The smoke test refreshes the real program 500 times and checks saved quotes.
+
+### Portfolio regression checks
+
+<p align="left"><a href="assets/screenshots/24-portfolio-regression-checks-sage.png"><img src="assets/thumbs/24-portfolio-regression-checks-sage.webp" width="960" alt="Portfolio regression checks"></a></p>
+
+The suite checks trades, quiet exit, invalid input and reopening saved holdings.
+
+
+## About the Author
+
+**Mohammad Rohaan** developed the simulator as a Programming Fundamentals final project. [GitHub profile](https://github.com/rohaan2802).

@@ -2,71 +2,25 @@
   "version": "2.0.0",
   "tasks": [
     {
-      "label": "MSVC: build active file",
+      "label": "Build simulator",
       "type": "shell",
-      "command": "& '${fileDirname}\\msvc_build.bat' '${fileBasename}'; exit $LASTEXITCODE",
+      "command": ".\\build.bat",
       "options": {
-        "cwd": "${fileDirname}",
-        "shell": {
-          "executable": "powershell.exe",
-          "args": [
-            "-NoLogo",
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command"
-          ]
-        }
-      },
-      "group": {
-        "kind": "build",
-        "isDefault": true
-      },
-      "problemMatcher": ["$msCompile"],
-      "presentation": {
-        "reveal": "always",
-        "panel": "shared"
-      }
-    },
-    {
-      "label": "C/C++: cl.exe build active file",
-      "type": "shell",
-      "command": "& '${fileDirname}\\msvc_build.bat' '${fileBasename}'; exit $LASTEXITCODE",
-      "options": {
-        "cwd": "${fileDirname}",
-        "shell": {
-          "executable": "powershell.exe",
-          "args": [
-            "-NoLogo",
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command"
-          ]
-        }
+        "cwd": "${workspaceFolder}"
       },
       "group": "build",
-      "problemMatcher": ["$msCompile"]
+      "problemMatcher": [
+        "$msCompile"
+      ]
     },
     {
-      "label": "build KSE Simulator",
+      "label": "Run simulator",
       "type": "shell",
-      "command": "& '${workspaceFolder}\\msvc_build.bat' '22i-2327_A_Project.cpp'; exit $LASTEXITCODE",
+      "command": ".\\run.bat",
       "options": {
-        "cwd": "${workspaceFolder}",
-        "shell": {
-          "executable": "powershell.exe",
-          "args": [
-            "-NoLogo",
-            "-NoProfile",
-            "-ExecutionPolicy",
-            "Bypass",
-            "-Command"
-          ]
-        }
+        "cwd": "${workspaceFolder}"
       },
-      "group": "build",
-      "problemMatcher": ["$msCompile"]
+      "problemMatcher": []
     }
   ]
 }
